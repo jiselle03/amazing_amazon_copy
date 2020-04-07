@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Amazing Amazon</title>
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= stylesheet_link_tag 'application', media: 'all' %>
+    <%= javascript_pack_tag 'application' %>
+  </head>
+
+  <body>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light" id="navbarSupportedContent">
+
+      <ul class="navbar-nav mr-auto">
+        
+        <h4>
+            <a class="navbar-brand" href="/">Amazing Amazon</a>
+        </h4>
+        
+        <div class="navbar-collapse">
+
+        <li class="nav-item <%= current_class?(root_path) %>">
+        <%= link_to "Home", root_path, class: "nav-link" %>
+        <% if current_page?(root_path) %>
+        <span class="sr-only">(current)</span>
+        <% end %>
+        </li>
+        
+        <li class="nav-item <%= current_class?(about_path) %>">
+        <%= link_to "About", about_path, class: "nav-link" %>
+        <% if current_page?(about_path) %>
+          <span class="sr-only">(current)</span>
+        <% end %>
+        </li>
+        
+        <li class="nav-item <%= current_class?(products_path) %>">
+        <%= link_to "All Products", products_path, class: "nav-link" %>
+        <% if current_page?(products_path) %>
+        <span class="sr-only">(current)</span>
+        <% end %>
+        </li>
+      
+        <li class="nav-item <%= current_class?(new_product_path) %>">
+        <%= link_to "New Product", new_product_path, class: "nav-link" %>
+        <% if current_page?(new_product_path) %>
+        <span class="sr-only">(current)</span>
+        <% end %>
+        </li>
+        
+        <li class="nav-item <%= current_class?(contact_path) %>">
+        <%= link_to "Contact", contact_path, class: "nav-link" %>
+        <% if current_page?(contact_path) %>
+        <span class="sr-only">(current)</span>
+        <% end %>
+        </li>
+      
+        <% if user_signed_in? %>
+          <li class="nav-item"><%= link_to "Favorites", favorited_products_path, class: "nav-link" %></li>
+          <li class="nav-item">Hello, <%= current_user.full_name %> </li>
+          <li class="nav-item"> <%= link_to "Log Out", session_path, method: :delete, data: { confirm: "Are you sure you want to log out?" }, class: "nav-link" %> </li>
+        <% else %>
+          <li class="nav-item"> <%= link_to "Log In", new_session_path, class: "nav-link" %></li>
+          <li class="nav-item"><%= link_to "Sign Up", new_user_path, class: "nav-link" %></li>
+        <% end %>
+
+  </div>
+    </ul>
+    </nav>
+    
+    <p>
+    <% flash.each do |type, message| %>
+      <div class="flash flash-<%= type %>">
+        <%= message %>
+      </div>
+    <% end %>
+    </p>
+
+    <%= yield %>
+  </body>
+
+      
+</html>

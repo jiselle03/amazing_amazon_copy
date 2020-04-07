@@ -1,0 +1,243 @@
+<main class="container">
+<p>&nbsp;</p>
+<h5><%= @product.title %> 
+
+<% if @favorite.present? && can?(:destroy, @favorite) %>
+    <%= link_to(
+        icon('fas', 'bookmark'),
+        favorite_path(@favorite),
+        method: :delete
+    ) %>
+<% elsif can?(:favorite, @product) %>
+    <%= link_to(
+        icon('far', 'bookmark'),
+        product_favorites_path(@product),
+        method: :post
+    ) %>
+<% end %>
+</h5>
+
+<p><%= @product.description %></p>
+<p>$<%= number_with_precision(@product.price, :precision => 2) %></p>
+<% unless @product.tags.empty? %>
+<p>Tags: <% @product.tags.each do |tag| %>
+            <%= link_to(
+                tag.name, products_path(tag: tag.name),
+                class: 'badge badge-pill badge-primary'
+            ) %>
+        <% end %>
+</p>
+<% end %>
+<small>Added by <%= @product.user.full_name %> <%= time_ago_in_words(@product.created_at) %> ago • Updated <%= time_ago_in_words(@product.updated_at) %> ago</small><br>
+<br>
+<% if can? :crud, @product %>
+    <%= link_to("Edit", edit_product_path(@product.id), :class => "btn btn-outline-primary") %>
+    <%= link_to("Delete", product_path(@product), method: :delete, data: {confirm: 'Are you sure?'}, :class => "btn btn-outline-primary") %>
+<% end %>
+
+<br><br>
+<section>
+    <h5>Leave a Review</h5>
+
+    <%= form_with(model: [@product, @new_review], local: true) do |f| %>
+        <% if @new_review.errors.present? %>
+        <p class="form-errors">
+            <%= @new_review.errors.full_messages.join(", ") %>
+        </p>
+        <% end %>
+
+        <div class="form-group">
+            <%= f.text_area(
+                :body,
+                cols: 50,
+                rows: 3,
+                placeholder: "Did you like the product?",
+                class: "form-control"
+                ) %>
+        </div>
+        <div class="form-group">
+            <%= f.label :rating, "How many stars would you give this product?"%>
+            <%= f.select :rating, ['1', '2', '3', '4', '5'], class: "form-control" %>
+        </div>
+
+        <%= f.submit 'Review', :class => "btn btn-outline-primary" %>
+
+    <% end %>
+
+    <hr>
+    <% count = 0 %>
+    <% for r in 0...@reviews.count %>
+        <% if @reviews[r].body != ""  %>
+            <% if @product.user == current_user || @reviews[r].is_hidden == false %>
+                <% count += 1 %>
+            <% end %>
+        <% end %>
+    <% end %>
+
+    <table>
+    <% one = 0 %><% two = 0 %><% three = 0 %><% four = 0 %><% five = 0 %>
+    <% for i in 0...@reviews.count %>
+        <% if @product.user == current_user || @reviews[i].is_hidden == false %>
+            <% if @reviews[i].rating == 1 %>
+                <% one += 1 %>
+            <% elsif @reviews[i].rating == 2 %>
+                <% two += 1 %>
+            <% elsif @reviews[i].rating == 3 %>
+                <% three += 1 %>
+            <% elsif @reviews[i].rating == 4 %>
+                <% four += 1 %>
+            <% elsif @reviews[i].rating == 5 %>
+                <% five += 1 %>
+            <% end %>
+        <% end %>
+    <% end %>
+
+<h5>Ratings (<%= one + two + three + four + five %>)</h5>
+
+    <tr><td>⭐</td><td><%= one %></td></tr>
+    <tr><td>⭐⭐</td><td><%= two%></td></tr>
+    <tr><td>⭐⭐⭐</td><td><%= three %></td></tr>
+    <tr><td>⭐⭐⭐⭐</td><td><%= four %></td></tr>
+    <tr><td>⭐⭐⭐⭐⭐</td><td><%= five %></td></tr>
+    
+    </table>
+
+    <p>&nbsp;</p>
+
+<h5>Reviews (<%= count %>)</h5>
+
+    <ul class="review-list">
+        <% @reviews.each do |review| %>
+
+        <% if review.is_hidden == false || current_user == @product.user %>
+        <li class="<%= 'hidden' if review.is_hidden == true %>">
+            <%= review.body %> <br>
+            <small>Added by <%= review.user.full_name %> <%= time_ago_in_words(review.created_at) %> ago • Updated <%= time_ago_in_words(review.updated_at) %> ago</small><br>
+            <% vote = review.votes.find_by(user_id: current_user) %>
+            <% if vote && can?(:crud, vote) %>
+                <% if vote.is_up == true %>
+                    <%= link_to(
+                        icon('fas', 'thumbs-up'),
+                        vote_path(vote),
+                        method: :delete
+                    ) %> 
+                    <% count = 0%>
+                    <% review.votes.each do |vote| %>
+                        <% count += 1 if vote.is_up == true %>
+                    <% end %>
+                    <small>(<%= count%>)</small>
+                    <%= link_to(
+                        icon('far', 'thumbs-down'),
+                        vote_path(vote, is_up: false),
+                        method: :patch
+                    ) %> 
+                    <% count = 0%>
+                    <% review.votes.each do |vote| %>
+                        <% count += 1 if vote.is_up == false %>
+                    <% end %>
+                    <small>(<%= count %>)</small>
+                <% elsif vote.is_up == false %>
+                    <%= link_to(
+                        icon('far', 'thumbs-up'),
+                        vote_path(vote, is_up: true),
+                        method: :patch
+                    ) %> 
+                    <% count = 0%>
+                    <% review.votes.each do |vote| %>
+                        <% count += 1 if vote.is_up == true %>
+                    <% end %>
+                    <small>(<%= count %>)</small>
+                    <%= link_to(
+                        icon('fas', 'thumbs-down'),
+                        vote_path(vote),
+                        method: :delete
+                    ) %>
+                    <% count = 0%>
+                    <% review.votes.each do |vote| %>
+                        <% count += 1 if vote.is_up == false %>
+                    <% end %>
+                    <small>(<%= count %>)</small>
+                <% end %>
+            <% else %>
+                <%= link_to(
+                        icon('far', 'thumbs-up'),
+                        review_votes_path(review, is_up: true),
+                        method: :post
+                    ) %> 
+                    <% count = 0%>
+                    <% review.votes.each do |vote| %>
+                        <% count += 1 if vote.is_up == true %>
+                    <% end %>
+                    <small>(<%= count %>)</small>
+                    <%= link_to(
+                        icon('far', 'thumbs-down'),
+                        review_votes_path(review, is_up: false),
+                        method: :post
+                    ) %>
+                    <% count = 0%>
+                    <% review.votes.each do |vote| %>
+                        <% count += 1 if vote.is_up == false %>
+                    <% end %>
+                    <small>(<%= count %>)</small>
+            <% end %>
+            <br>
+            Rating: <% review.rating.times { %> ⭐ <% }%>
+            <br>
+
+            <% if can? :crud, review %>
+            <small>
+                Reviewed by <%= review.user.full_name %> <%= time_ago_in_words(review.created_at) %> ago
+            </small>
+
+            <small>
+                <%= link_to(
+                    "Edit",
+                    edit_review_path(@product, review)
+                ) %> | 
+            </small>
+            <small>
+                <%= link_to(
+                "#{review.is_hidden ? 'Show' : 'Hide'}",
+                    toggle_hidden_path(review),
+                    method: :patch
+                ) %> | 
+            </small>
+            <small>
+                <%= link_to(
+                    "Delete",
+                    review_path(@product, review),
+                    method: :delete,
+                    data: {
+                        confirm: "Are you sure?"
+                    }
+                ) %> | 
+            </small>
+            <% end %>
+            
+            <small>
+            <% like = review.likes.find_by(user_id: current_user) %>
+            <% if like && can?(:destroy, like) %>
+                <%= link_to(
+                    "Unlike",
+                    like_path(like),
+                    method: :delete
+                ) %>
+            <% elsif can?(:like, review) %>
+                <%= link_to(
+                    "Like",
+                    review_likes_path(review),
+                    method: :post
+                ) %> | 
+            <% end %></small>
+            <small><%= pluralize(review.likes.count, "like") %></small>
+            
+        </li>
+        <% end %>
+
+        <% end %>
+
+       
+    </ul>
+</section>
+
+</main>

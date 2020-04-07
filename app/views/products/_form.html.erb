@@ -1,0 +1,28 @@
+<%= form_with(model: @product, local: true) do |form|%>
+<div>
+    <% if @product.errors.present?%>
+    <%= @product.errors.full_messages.join(', ')%>
+    <% end %>
+</div>
+<div>
+    <%= form.label :title%><br>
+    <%= form.text_field :title %>
+</div>
+<div>
+    <%= form.label :description %><br>
+    <%= form.text_area :description, cols: 50, rows:5%>
+</div>
+<div>
+    <%= form.label :price %><br>
+    <%= form.text_field :price %>
+</div>
+
+<div>
+    <%= form.label :tag_names, "Tags" %><br>
+    <%= form.text_field :tag_names %>
+</div>
+
+<br>
+<%= form.submit "Submit", :class => "btn btn-outline-primary" %>
+
+<% end %>
